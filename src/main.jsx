@@ -13,16 +13,23 @@ import Reactapp from './React-redux/Reactapp.jsx'
 import Hooke from './Hooke.jsx'
 import Tan from './TanQuery/Tan.jsx'
 import Users from './TanQuery/Users.jsx';
+import Parent from './children/Parent.jsx';
+import UseState from './Hooks/UseState.jsx';
+import UseMemo from './Hooks/UseMemo.jsx';
 
-const queryClient = new QueryClient();
+// const queryClient = new QueryClient();
 
 createRoot(document.getElementById('root')).render(
-   <StrictMode>
+//    <StrictMode>
       
-<QueryClientProvider client={queryClient}>
-      <Users />
-    </QueryClientProvider>
-   </StrictMode>
+// <QueryClientProvider client={queryClient}>
+//       <Users />
+//     </QueryClientProvider>
+//    </StrictMode>
+
+<StrictMode>
+   <UseMemo />
+</StrictMode>
    
  
 )
