@@ -1,4 +1,4 @@
-import React, {useState,createContext} from "react";  
+import React, {useState,createContext, useMemo} from "react";  
 import Component1 from "./Component1";
 import Component2 from "./Component2";
 
@@ -10,13 +10,15 @@ export default function Component(){
 
     const[user,setUser] = useState({name:"pardhu",age:"23"})
 
+    const contextValue= useMemo(()=>({user,setUser}),[user])
+
 
     return(
 
         <>
         <h1>Component</h1>
         
-          <UseUser.Provider value={user.name}>
+          <UseUser.Provider value={contextValue}>
               < Component1  />
              
 
@@ -24,7 +26,7 @@ export default function Component(){
 
         <h2>!!!!!!!!!!!!!!!!!!!</h2>
 
-        <UseUser.Provider value={user.name}>
+        <UseUser.Provider value={contextValue}>
               
               <Component2 />
 
