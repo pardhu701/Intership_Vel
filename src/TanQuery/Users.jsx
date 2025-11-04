@@ -1,49 +1,26 @@
+
+
+
 import { useQuery } from '@tanstack/react-query';
-import Loading from './Loading'
+import Loading from './Loading';
+import { useState } from 'react';
+import UserOption from './UserOption';
 
 export default function Users() {
-    const { data, isLoading, error, isPending } = useQuery({
-        queryKey: ['users'],
-        // queryFn: () =>
-        //     fetch('https://jsonplaceholder.typicode.com/users').then(res => res.json()),
-        // // queryFn: async()=>{
-        //      await new Promise(res => setTimeout(res, 5000));
-        //      return fetch('https://jsonplaceholder.typicode.com/users').then(res => res.json()),
+    const[id,setId] = useState(1);
+    const { data, isLoading, error } = useQuery(UserOption(id));
 
-        // }
-        queryFn: async () => {
-            await new Promise(res => setTimeout(res, 1000));
-            const response = await fetch('https://jsonplaceholder.typicode.com/users');
-            return response.json();
-        }
-
-    });
-
-  
-  
-      if (isLoading) return <div>Loading...</div>;
-      if (error) return <div>Error fetching users</div>;
+    if (isLoading) return <Loading />;
+    if (error) return <div>Error fetching users: {error.message}</div>;
+    
 
     return (
+        <div>
+          
+            <h2>{JSON.stringify(data)}</h2>
 
-        <>
-            <div>
-                {isPending ?
-                    <Loading /> :
-                    (
-                        <ul>
-                            {
-
-                            data?.map((user) => (
-                                
-                                <li key={user.id}>{user.name}</li>
-                            ))}
-                        </ul>
-                    )
-                }
-            </div>
-        </>
-
-
+            <button onClick={()=>{setId(id+1)}}>+</button>
+        </div>
     );
 }
+

@@ -1,8 +1,13 @@
 
+import { BrowserRouter, Route, Router, Routes } from 'react-router-dom';
 import './App.css'
 import New from './New';
-import {Button,ConfigProvider,Space} from 'antd';
+import { Button, ConfigProvider, Space } from 'antd';
 import 'antd/dist/reset.css';
+import UserOrdersPage from './TanQuery/UserOrdersPage';
+import { Outlet } from "react-router";
+import Nav from './TanQuery/Nav';
+import React from 'react';
 
 // function App() {
 
@@ -121,7 +126,7 @@ import 'antd/dist/reset.css';
 // return (
 //   <>
 //   <ul>{MapList}</ul>
-  
+
 //   </>
 // );
 
@@ -129,34 +134,40 @@ import 'antd/dist/reset.css';
 
 // export default App
 
-export default function App(){
+
+import { useQuery } from '@tanstack/react-query';
+import Users from './TanQuery/Users';
+import Order from './TanQuery/Orders';
+import Orders from './TanQuery/Orders';
+import { Layout } from 'antd';
+
+const { Header, Content, Footer } = Layout;
 
 
+export default function App() {
 
-  return(
+  useQuery(Users());
+  useQuery(Orders());
 
-    <ConfigProvider
-//theme
-theme={{
-  token:{
-    colorPrimary: '#00b96b',
-        borderRadius: 2,
+  return (
 
-        // Alias Token
-        colorBgContainer: '#f6ffed',
-  },
-}}
->
+   
+   
+     
+        <div  style={{
+        // full viewport width
+        height: '100vh',   // full viewport height
+        backgroundColor: '#f0f2f5', // optional
+      }}>
+          <Nav />
+          <Outlet />
 
- <Space>
-      <Button type="primary">Primary</Button>
-      <Button>Default</Button>
-    </Space>
-
-
-</ConfigProvider>
-
+        </div>
     
+  
+   
+
+
   );
 
 

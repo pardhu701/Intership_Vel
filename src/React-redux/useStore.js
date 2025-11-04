@@ -1,7 +1,8 @@
 import {createStore} from 'redux'
 
 const initialState={
-    count:100,
+    count:0,
+    
 }
 
 export const increment = () => ({ type: 'INC' });
@@ -11,11 +12,9 @@ export const decrement = () => ({ type: 'DEC' });
 export  function counterReducer(state=initialState,action){
     switch (action.type) {
     case 'INC':
-      console.log(...state)
-      return { ...state, count: state.count + 2 };
-
+      return { ...state, count: state.count + 1  };
     case 'DEC':
-      return { ...state, count: state.count - 1 };
+      return { ...state, count: state.count - 1  };
     default:
       return state;
   }
