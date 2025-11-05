@@ -20,8 +20,8 @@ const Nav = () => {
 //     }
 //   };
 
-const[user,setUser]= React.useState("Customer")
-const userName=useSelector(state=>state.user.user.name)
+const[user,setUser]= React.useState({})
+const userName=useSelector(state=>state.user.user)
 
 React.useEffect(()=>{
   
@@ -66,7 +66,7 @@ React.useEffect(()=>{
 
       {/* RIGHT SIDE - Customer name */}
       <div style={{ color: 'white', fontWeight: '500' }}>
-        {user}
+        {(user.type==="admin"?user.name+"(Admin)":user.name)}
       </div>
     </div>
   );

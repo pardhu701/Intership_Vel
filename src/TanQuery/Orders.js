@@ -4,6 +4,7 @@ import React from 'react'
 
 
 import axios from 'axios';
+import { BASE_URL } from './Api';
 
 
 function Orders() {
@@ -12,7 +13,7 @@ function Orders() {
 
    
     queryFn: async () => {
-        const { data } = await axios.get("http://localhost:8080/api/orders");
+        const { data } = await axios.get(`${BASE_URL}/orders`);
             return data;
            },
         staleTime: Infinity,

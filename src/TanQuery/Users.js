@@ -3,6 +3,7 @@ import React from 'react'
 
 
 import axios from 'axios';
+import { BASE_URL } from './Api';
 
 
 function Users() {
@@ -11,7 +12,7 @@ function Users() {
 
    
     queryFn: async () => {
-        const { data } = await axios.get("http://localhost:8080/api/users");
+        const { data } = await axios.get(`${BASE_URL}/users`);
             return data;
            },
         staleTime: Infinity,

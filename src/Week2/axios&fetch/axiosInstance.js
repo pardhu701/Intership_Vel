@@ -1,9 +1,10 @@
 import axios from "axios";
+import { BASE_URL } from "../../TanQuery/Api";
 
 
 
 const axiosInstance = axios.create({
-    baseURL:'http://localhost:4000/',
+    baseURL:`${BASE_URL}/`,
     timeout:1000,
     headers: { 'Content-Type': 'application/json' }
 

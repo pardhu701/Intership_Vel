@@ -9,6 +9,7 @@ import { Layout, Card, Descriptions, Typography, Space, Input, AutoComplete,Butt
 import { PlusOutlined } from '@ant-design/icons';
 import {  useDispatch } from "react-redux";
 import { setUserC } from "./UseSlice";
+import { setIsVerified, setPinInput, setShowPinPrompt } from "./authSlice";
 
 import UserOption from "./UserOption";
 import OrderForm1 from "./OrderForm1";
@@ -23,8 +24,8 @@ const myLightWarmTheme = themeQuartz.withPart(colorSchemeLightWarm);
 
 const UserOrdersPage = () => {
   const [orders, setOrders] = useState([]);
-  const [searchTerm, setSearchTerm] = useState("default");
-  const [user, setUser] = useState({ id: 0, name: "default", age: 0 });
+  const [searchTerm, setSearchTerm] = useState("Customer");
+  const [user, setUser] = useState({ id: 0, name: "Customer", age: 0 });
   const [options, setOptions] = useState([]);
 
   // const userSet = useSelector((state) => state.user.user);
@@ -47,7 +48,7 @@ const UserOrdersPage = () => {
 
   // AG Grid columns
   const columnDefs = [
-    { headerName: "Order ID", field: "id" },
+    { headerName: "Order ID", field: "idN" },
 
     { headerName: "Transaction ID", field: "transactionId" },
     { headerName: "Category", field: "category" },
@@ -111,16 +112,24 @@ const UserOrdersPage = () => {
     const userData = data;
     setUser({
       id: userData.id ?? 0,
-      name: userData.name ?? "default",
+      name: userData.name ?? "Customer",
       age: userData.age ?? 0,
     });
 
     dispatch(setUserC({
       id: userData.id ?? 0,
-      name: userData.name ?? "default",
+      name: userData.name ?? "Customer",
       age: userData.age ?? 0,
+      type:userData.type?? "individual",
+      adminpasscode:userData.adminpasscode ?? 0,
+      createadminpass:userData.createadminpass ?? 0
     }));
 
+    dispatch(setPinInput(""))
+dispatch(setIsVerified(false))
+dispatch(setShowPinPrompt(false))
+
+   
     setOrders(data.orders ?? []);
   }, [data, dispatch]);
 

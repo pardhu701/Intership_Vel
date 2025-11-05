@@ -1,20 +1,47 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { Card, Typography, Space, Button } from "antd";
+import { Card, Typography, Space, Button ,Modal, Input } from "antd";
 import { AgGridReact } from "ag-grid-react";
+import { ModuleRegistry, AllCommunityModule, themeQuartz } from 'ag-grid-community';
 import "ag-grid-community/styles/ag-grid.css";
 import "ag-grid-community/styles/ag-theme-alpine.css";
 import "antd/dist/reset.css";
 import axios from 'axios';
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { putOrder } from "./addOrder";
-
+import { useSelector } from "react-redux";
+import { BASE_URL } from "./Api";
+import { useDispatch } from "react-redux";
+import { setIsVerified, setPinInput, setShowPinPrompt } from "./authSlice.js";
 
 const { Title } = Typography;
 
 
 const AllOrderPage = () => {
+  
   const queryClient = useQueryClient();
    const [trigger, setTrigger] = useState(false)
+   const[user,setUser]= React.useState({})
+const userName=useSelector(state=>state.user.user)
+
+// ////////////////////
+//  const [isVerified, setIsVerified] = useState(false);
+//   const [pinInput, setPinInput] = useState("");
+//   const [showPinPrompt, setShowPinPrompt] = useState(false);
+//   ///////////////////
+  const dispatch = useDispatch();
+  const { isVerified, pinInput, showPinPrompt } = useSelector((state) => state.auth);
+
+
+React.useEffect(()=>{
+  
+  setUser(userName);
+    if (userName?.type === "admin" && !isVerified) {////////////
+      // setShowPinPrompt(true);
+      dispatch(setShowPinPrompt(true))
+     
+    }//////////////
+},[userName])
+
  
 
   const putChange = useMutation({
@@ -32,6 +59,12 @@ const AllOrderPage = () => {
 
   })
 
+  
+  function isEditable(params) {
+    // allow editing only if current user is admin
+    return user.type === 'admin' && isVerified;
+    // you can add more logic: only certain rows, columns, etc.
+  }
 
 
   // Define column definitions
@@ -44,24 +77,25 @@ const AllOrderPage = () => {
     },
 
     { headerName: "Transaction ID", field: "transactionId", filter: "agTextColumnFilter", cellStyle: { textAlign: 'left' } },
-    { headerName: "Category", field: "category", filter: "agTextColumnFilter", cellStyle: { textAlign: 'left' },editable: true,
+    { headerName: "Category", field: "category", filter: "agTextColumnFilter", cellStyle: { textAlign: 'left' },editable: params => isEditable(params),
    cellEditor: 'agSelectCellEditor',
     cellEditorParams: {
       values: ['Electronics', 'Clothing', 'Groceries', 'Toys', 'Books', 'Kitchen', 'SportsKit']
     },
   },
-    { headerName: "Item Count", field: "itemscount", filter: "agNumberColumnFilter", cellStyle: { textAlign: 'left' }, editable:true},
+    { headerName: "Item Count", field: "itemscount", filter: "agNumberColumnFilter", cellStyle: { textAlign: 'left' }, editable:params => isEditable(params)},
     { headerName: "₹ Amount", field: "totalamount", filter: "agNumberColumnFilter", cellStyle: { textAlign: 'left' }},
     { headerName: "Payment Method", field: "payementmethod", filter: "agTextColumnFilter", cellStyle: { textAlign: 'left' }, },
-    { headerName: "Order Date", field: "orderdate", filter: "agDateColumnFilter", cellStyle: { textAlign: 'left' }, editable: true },
-    { headerName: "Last Update", field: "lastupdated", filter: "agDateColumnFilter", cellStyle: { textAlign: 'left' }, editable: true },
+    { headerName: "Order Date", field: "orderdate", filter: "agDateColumnFilter", cellStyle: { textAlign: 'left' }, editable: params => isEditable(params)},
+    { headerName: "Last Update", field: "lastupdated", filter: "agDateColumnFilter", cellStyle: { textAlign: 'left' }, editable: params => isEditable(params) },
     {
       headerName: "Status",
       cellStyle: { textAlign: 'left' },
-      editable: true,
+      editable: params => isEditable(params),
       cellEditor: 'agSelectCellEditor',
       cellEditorParams: {
-        values: ['Pending', 'Shipped', 'Paid', 'Cancelled']  // dropdown options
+        values: ['Pending', 'Shipped', 'Paid', 'Cancelled'],  // dropdown options
+         multiSelect: true
       },
       field: "status",
       filter: "agSetColumnFilter",
@@ -93,7 +127,7 @@ const AllOrderPage = () => {
   useEffect(() => {
     async function getUser() {
       try {
-        const response = await axios.get('http://localhost:8080/api/orders');
+        const response = await axios.get(`${BASE_URL}/orders`);
         console.log(response.data);
         setRowData(response.data);
       } catch (error) {
@@ -197,26 +231,67 @@ const AllOrderPage = () => {
       </Button>
     )}
 
-        <div
-          className="ag-theme-alpine"
-          style={{
-            height: "80vh",
-            width: "100%",
-          }}
+       {/* ✅ PIN Modal (Ant Design) */}
+        <Modal
+          title="🔒 Admin Verification"
+          open={showPinPrompt}
+          closable={false}
+          footer={null}
         >
-          <AgGridReact
-            rowData={rowData}
-            columnDefs={columnDefs}
-            defaultColDef={defaultColDef}
-            pagination={true}
-            paginationPageSize={22}
-            onGridReady={onGridReady}
-            onCellValueChanged={onCellValueChanged}
-          //onRowValueChanged={onRowChange}
+          <p>Please enter your admin PIN to enable editing:</p>
+          <Input.Password
+            placeholder="Enter PIN"
+            value={pinInput}
+            onChange={(e) => dispatch(setPinInput(e.target.value))}
+            style={{ marginBottom: "1rem" }}
           />
+          <Space>
+            <Button
+              type="primary"
+              onClick={() => {
+                if (Number(pinInput) === Number(userName.createadminpass)) {
+                 
+                   dispatch(setIsVerified(true));
+                  dispatch(setShowPinPrompt(false));
+                } else {
+                  Modal.error({
+                    title: "Incorrect PIN",
+                    content: "Please try again.",
+                  });
+                }
+              }}
+            >
+              Verify
+            </Button>
+            <Button onClick={() => dispatch(setShowPinPrompt(false))}>Cancel</Button>
+          </Space>
+        </Modal>
 
-        
-
+        {/* ✅ Blur the grid until verified */}
+        <div
+          style={{
+            position: "relative",
+            filter: user.type === "admin" && !isVerified ? "blur(4px)" : "none",
+            pointerEvents: user.type === "admin" && !isVerified ? "none" : "auto",
+          }}
+          className="ag-theme-alpine"
+        >
+          <div
+            style={{
+              height: "80vh",
+              width: "100%",
+            }}
+          >
+            <AgGridReact
+              rowData={rowData}
+              columnDefs={columnDefs}
+              defaultColDef={defaultColDef}
+              pagination={true}
+              paginationPageSize={22}
+              onGridReady={onGridReady}
+              onCellValueChanged={onCellValueChanged}
+            />
+          </div>
         </div>
       </Space>
     </Card>

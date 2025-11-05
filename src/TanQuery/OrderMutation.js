@@ -3,9 +3,10 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 
 import axios from 'axios';
+import { BASE_URL } from './Api';
 
 // Replace with your real backend endpoint
-const API_URL = 'http://localhost:8080/api/orders';
+const API_URL = `${BASE_URL}/orders`;
 
 // Add order function
 export const addOrder = async (orderData) => {

@@ -1,8 +1,9 @@
 import axios from "axios";
+import { BASE_URL } from "./Api";
 
 
 
-const API_URL = 'http://localhost:8080/api/orders';
+const API_URL = `${BASE_URL}/orders`;
 
 export const addOrder = async (orderData) => {
   try {
@@ -17,7 +18,7 @@ export const addOrder = async (orderData) => {
 
 export const putOrder= async ({id,putChange}) => {
   try {
-    const response = await axios.put(`http://localhost:8080/api/orders/${id}`, putChange);
+    const response = await axios.put(`${BASE_URL}/orders/${id}`, putChange);
     return response.data; // Return the created order data
   } catch (error) {
     console.error('Error adding order:', error);

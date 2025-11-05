@@ -1,6 +1,6 @@
 // UserForm.jsx
 import React from "react";
-import { Form, Input, InputNumber, Button, Card } from "antd";
+import { Form, Input, InputNumber, Button, Card,Select } from "antd";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 import axiosInstance from "../Week2/axios&fetch/axiosInstance";
@@ -8,6 +8,7 @@ import { Link } from "react-router";
 import UserOrdersPage from "./UserOrdersPage";
 
 import LoadingPage from "./LoadingPage";
+import { BASE_URL } from "./Api";
 
 //import { useQueryClient } from "@tanstack/react-query";
 
@@ -16,7 +17,8 @@ import LoadingPage from "./LoadingPage";
 
 
 const useradd = async (newadd) => {
-  const response = await axiosInstance.post('http://localhost:8080/api/users', newadd);
+
+  const response = await axiosInstance.post(`http://localhost:8080/api/users`, newadd);
   return response.data;
 };
 
@@ -24,11 +26,14 @@ const FormUser = () => {
 
   const queryClient = useQueryClient();
   const [form] = Form.useForm();
+    const type = Form.useWatch("type", form);
+
 
 
   const mutation = useMutation({
     mutationFn: useradd,
     onSuccess: (data) => {
+      console.log(data)
       queryClient.setQueryData(['users'], (oldData) => {
   return oldData
     ? [...oldData, data] // Add the new user
@@ -71,12 +76,32 @@ const FormUser = () => {
     const shortString = 'PS' + num.toString(36);
 
     const value = { ...values, userid: shortString }
-    console.log(value)
- 
+  
     mutation.mutate(value)
 
 
   };
+
+    const validateAdminCode = async (_, value) => {
+  const cachedData = queryClient.getQueryData(["users"]);
+
+  if (!cachedData) {
+    return Promise.reject("Admin codes not loaded yet. Try again.");
+  }
+
+  // Find the admin user explicitly
+  const isValid = cachedData.some(user=>String(user.createadminpass) === String(value));
+
+
+;
+
+  if (!isValid) {
+    return Promise.reject("Invalid admin pass code");
+  }
+
+  return Promise.resolve();
+};
+
 
   if(mutation.isSuccess){
    
@@ -131,6 +156,38 @@ const FormUser = () => {
           >
             <InputNumber min={0} style={{ width: "100%" }}  placeholder="Enter Age" />
           </Form.Item>
+
+            <Form.Item
+          name="type"
+          label="Account Type"
+          rules={[{ required: true }]}
+        >
+          <Select placeholder="Select payment method">
+            <Option value="admin">Admin</Option>
+            <Option value="individual">Individual</Option>
+          </Select>
+        </Form.Item>
+
+         {type === "admin" && (
+        <Form.Item
+          name="adminpasscode"
+          label="Admin Pass Code"
+          rules={[{ required: true, message: "Please enter admin pass code" },{validator:  validateAdminCode}]}
+          
+        >
+          <Input placeholder="Enter admin  pass code" />
+        </Form.Item>
+      )}
+
+         {type === "admin" && (
+        <Form.Item
+          name="createadminpass"
+          label="Create Pass"
+          rules={[{ required: true, message: "Create Your Own Pass code"  }]}
+        >
+          <Input placeholder="Create Your Own Pass code" />
+        </Form.Item>
+      )}
 
           <Form.Item>
             <Button type="primary" htmlType="submit" >
