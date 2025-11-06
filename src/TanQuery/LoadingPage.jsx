@@ -2,7 +2,15 @@ import React, { useState, useEffect } from 'react';
 import { Spin } from 'antd';
 
 const AnimatedTickMark = () => (
-  <svg width="120" height="120" viewBox="0 0 120 120">
+  <svg
+    width="120"
+    height="120"
+    viewBox="0 0 120 120"
+    style={{
+      display: 'block',
+      margin: '0 auto',
+    }}
+  >
     <circle
       cx="60"
       cy="60"
@@ -67,6 +75,10 @@ const LoadingPage = () => {
           opacity: loading ? 1 : 0,
           transition: 'opacity 0.5s',
           pointerEvents: 'none',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
         }}
       >
         <Spin size="large" tip="Loading..." />
@@ -78,12 +90,23 @@ const LoadingPage = () => {
           position: 'absolute',
           opacity: showTick ? 1 : 0,
           transition: 'opacity 0.5s',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
         }}
       >
-        {showTick ? <div><AnimatedTickMark /><br/><h1>WelCome...Shopee👍</h1></div> : null}
+        {showTick && (
+          <div style={{ textAlign: 'center' }}>
+            <AnimatedTickMark />
+            <br />
+            <h1>Welcome... Shopee 👍</h1>
+          </div>
+        )}
       </div>
     </div>
   );
 };
 
 export default LoadingPage;
+

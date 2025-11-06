@@ -6,7 +6,7 @@ import PieChart from './PieChart';
 import { useQueryClient } from '@tanstack/react-query';
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
-import { subtractTime,padZero } from './subtractTime';
+import { subtractTime, padZero } from './subtractTime';
 
 
 
@@ -31,8 +31,11 @@ const ReportPage = () => {
   //         const { data } = await axios.get("http://localhost:8080/api/orders");
   //             return data;
   //            }, refetchInterval:1 });
-
-
+// console.log(bar)
+//console.log(pie)
+console.log(array)
+console.log("///////////////////////////////////////////////////////////////////////")
+console.log(yaxis)
 
   const handleTimeChange = e => {
     setTimeRange(e.target.value);
@@ -48,8 +51,8 @@ const ReportPage = () => {
     const PieChatPass = PieChartData(timeRange, orderDetails)
     setArray(result)
     setYaxis(yaxisres)
-    setBar(prev => ({ ...prev, ...BarChartPass }))
-    setPie(prev => ({ ...prev, ...PieChatPass }))
+    setBar(BarChartPass )
+    setPie(PieChatPass)
   }, [timeRange, orderDetails])
 
   return (
@@ -130,13 +133,17 @@ const BarChartData = (timeRange, orders) => {
       break;
 
     case '1D':
-      for (let i = 0; i < 24; i++) {
+      for (let i = 24;i>0;i--) {
         const hourAgo = subtractTime(now, { hours: i });
-        const labelHour = hourAgo[2]; // hour
+      
+        const labelDate = `${hourAgo[5]}-${hourAgo[4]}-${hourAgo[3]}`;
+        const labelHour = `${labelDate} ${hourAgo[2]}`; // YYYY-MM-DD HH
+        //console.log(labelHour)
+
         orders.forEach(order => {
           const orderDate = new Date(order.orderdate);
-          const orderHour = padZero(orderDate.getHours());
-          if (orderHour === labelHour && (order.status === 'Paid' || order.status === 'Shipped')) {
+          const orderLabel = `${orderDate.getUTCFullYear()}-${padZero(orderDate.getUTCMonth() + 1)}-${padZero(orderDate.getUTCDate())} ${padZero(orderDate.getUTCHours())}`;
+          if (orderLabel === labelHour && (order.status === 'Paid' || order.status === 'Shipped')) {
             list[order.name] = (list[order.name] || 0) + order.totalamount;
           }
         });
@@ -146,10 +153,12 @@ const BarChartData = (timeRange, orders) => {
     case '4HR':
       for (let i = 0; i < 240; i++) {
         const minuteAgo = subtractTime(now, { minutes: i });
-        const labelMinute = minuteAgo[2] + ":" + minuteAgo[1]; // HH:mm
+        const labelDate = `${minuteAgo[5]}-${minuteAgo[4]}-${minuteAgo[3]}`;
+        const labelMinute = `${labelDate} ${minuteAgo[2]}:${minuteAgo[1]}`; // YYYY-MM-DD HH:mm
+
         orders.forEach(order => {
           const orderDate = new Date(order.orderdate);
-          const orderLabel = padZero(orderDate.getHours()) + ":" + padZero(orderDate.getMinutes());
+          const orderLabel = `${orderDate.getFullYear()}-${padZero(orderDate.getMonth() + 1)}-${padZero(orderDate.getDate())} ${padZero(orderDate.getHours())}:${padZero(orderDate.getMinutes())}`;
           if (orderLabel === labelMinute && (order.status === 'Paid' || order.status === 'Shipped')) {
             list[order.name] = (list[order.name] || 0) + order.totalamount;
           }
@@ -160,10 +169,12 @@ const BarChartData = (timeRange, orders) => {
     case '1HR':
       for (let i = 0; i < 60; i++) {
         const minuteAgo = subtractTime(now, { minutes: i });
-        const labelMinute = minuteAgo[2] + ":" + minuteAgo[1]; // HH:mm
+        const labelDate = `${minuteAgo[5]}-${minuteAgo[4]}-${minuteAgo[3]}`;
+        const labelMinute = `${labelDate} ${minuteAgo[2]}:${minuteAgo[1]}`; // YYYY-MM-DD HH:mm
+
         orders.forEach(order => {
-          const orderDate = new Date(order.orderdate);
-          const orderLabel = padZero(orderDate.getHours()) + ":" + padZero(orderDate.getMinutes());
+          const orderDate = new Date(order.orderdate.replace(" ", "T"));
+          const orderLabel = `${orderDate.getFullYear()}-${padZero(orderDate.getMonth() + 1)}-${padZero(orderDate.getDate())} ${padZero(orderDate.getHours())}:${padZero(orderDate.getMinutes())}`;
           if (orderLabel === labelMinute && (order.status === 'Paid' || order.status === 'Shipped')) {
             list[order.name] = (list[order.name] || 0) + order.totalamount;
           }
@@ -173,10 +184,15 @@ const BarChartData = (timeRange, orders) => {
 
     default:
       break;
+
   }
+
+
 
   return list;
 };
+
+
 
 // Pie Chart Data
 const PieChartData = (timeRange, orders) => {
@@ -205,11 +221,13 @@ const PieChartData = (timeRange, orders) => {
     case '1D':
       for (let i = 0; i < 24; i++) {
         const hourAgo = subtractTime(now, { hours: i });
-        const labelHour = hourAgo[2]; // hour
+        const labelDate = `${hourAgo[5]}-${hourAgo[4]}-${hourAgo[3]}`;
+        const labelHour = `${labelDate} ${hourAgo[2]}`;
+
         orders.forEach(order => {
           const orderDate = new Date(order.orderdate);
-          const orderHour = padZero(orderDate.getHours());
-          if (orderHour === labelHour) {
+          const orderLabel = `${orderDate.getFullYear()}-${padZero(orderDate.getMonth() + 1)}-${padZero(orderDate.getDate())} ${padZero(orderDate.getHours())}`;
+          if (orderLabel === labelHour) {
             list[order.status] = (list[order.status] || 0) + 1;
           }
         });
@@ -219,10 +237,12 @@ const PieChartData = (timeRange, orders) => {
     case '4HR':
       for (let i = 0; i < 240; i++) {
         const minuteAgo = subtractTime(now, { minutes: i });
-        const labelMinute = minuteAgo[2] + ":" + minuteAgo[1];
+        const labelDate = `${minuteAgo[5]}-${minuteAgo[4]}-${minuteAgo[3]}`;
+        const labelMinute = `${labelDate} ${minuteAgo[2]}:${minuteAgo[1]}`;
+
         orders.forEach(order => {
           const orderDate = new Date(order.orderdate);
-          const orderLabel = padZero(orderDate.getHours()) + ":" + padZero(orderDate.getMinutes());
+          const orderLabel = `${orderDate.getFullYear()}-${padZero(orderDate.getMonth() + 1)}-${padZero(orderDate.getDate())} ${padZero(orderDate.getHours())}:${padZero(orderDate.getMinutes())}`;
           if (orderLabel === labelMinute) {
             list[order.status] = (list[order.status] || 0) + 1;
           }
@@ -233,10 +253,12 @@ const PieChartData = (timeRange, orders) => {
     case '1HR':
       for (let i = 0; i < 60; i++) {
         const minuteAgo = subtractTime(now, { minutes: i });
-        const labelMinute = minuteAgo[2] + ":" + minuteAgo[1];
+        const labelDate = `${minuteAgo[5]}-${minuteAgo[4]}-${minuteAgo[3]}`;
+        const labelMinute = `${labelDate} ${minuteAgo[2]}:${minuteAgo[1]}`;
+
         orders.forEach(order => {
           const orderDate = new Date(order.orderdate);
-          const orderLabel = padZero(orderDate.getHours()) + ":" + padZero(orderDate.getMinutes());
+          const orderLabel = `${orderDate.getFullYear()}-${padZero(orderDate.getMonth() + 1)}-${padZero(orderDate.getDate())} ${padZero(orderDate.getHours())}:${padZero(orderDate.getMinutes())}`;
           if (orderLabel === labelMinute) {
             list[order.status] = (list[order.status] || 0) + 1;
           }
@@ -250,6 +272,8 @@ const PieChartData = (timeRange, orders) => {
 
   return list;
 };
+
+
 
 // Generate X-Axis Labels
 const generateXAxis = (timeRange) => {
@@ -266,23 +290,35 @@ const generateXAxis = (timeRange) => {
       break;
 
     case '1D':
-      for (let j = 1; j <= 24; j++) {
+      for (let j = 0; j <24; j++) {
         const result = subtractTime(now, { hours: j });
-        labels.push(result[2] + ":" + result[1]);
+       // const labelDate = `${result[5]}-${result[4]}-${result[3]}`;
+        labels.push(`${result[2]}:${result[1]}`);
       }
       break;
 
-    case '4HR':
-      for (let j = 1; j <= 240; j++) {
-        const result = subtractTime(now, { minutes: j });
-        labels.push(result[2] + ":" + result[1]);
+    // case '4HR':
+    //   for (let j = 1; j <= 240; j++) {
+    //     const result = subtractTime(now, { minutes: j });
+    //     const labelDate = `${result[5]}-${result[4]}-${result[3]}`;
+    //     labels.push(`${result[2]}:${result[1]}`);
+    //   }
+    //   break;
+     case '4HR':
+      // 4 hours / 0.5 hour = 8 intervals
+      for (let j = 0; j < 8; j++) {
+        const result = subtractTime(now, { minutes: j * 30 });
+        const label = `${padZero(result[2])}:${padZero(result[1])}`;
+        labels.push(label);
       }
       break;
+
 
     case '1HR':
-      for (let j = 1; j <= 60; j++) {
+      for (let j = 0; j <60; j++) {
         const result = subtractTime(now, { minutes: j });
-        labels.push(result[2] + ":" + result[1]);
+        const labelDate = `${result[5]}-${result[4]}-${result[3]}`;
+        labels.push(`${result[2]}:${result[1]}`);
       }
       break;
 
@@ -290,8 +326,10 @@ const generateXAxis = (timeRange) => {
       break;
   }
 
-  return labels.reverse(); // chronological order
+  return labels; // chronological order
 };
+
+
 
 // Generate Y-Axis Values
 const generateYAxis = (timeRange, orders) => {
@@ -316,29 +354,65 @@ const generateYAxis = (timeRange, orders) => {
 
     case '1D':
       for (let i = 0; i < 24; i++) {
-        const hourAgo = subtractTime(now, { hours: i });
-        const labelHour = hourAgo[2];
+        const hourAgo = subtractTime(now, { hours: i });  //2:30
+        const hourAgoU = subtractTime(now, { hours: i + 1 });///
+        const endDate = new Date(
+          `${hourAgo[5]}-${hourAgo[4]}-${hourAgo[3]}T${hourAgo[2]}:${hourAgo[1]}:${hourAgo[0]}`
+        );
+        const startDate = new Date(
+          `${hourAgoU[5]}-${hourAgoU[4]}-${hourAgoU[3]}T${hourAgoU[2]}:${hourAgoU[1]}:${hourAgoU[0]}`
+        );
+        const label = `${endDate.getUTCHours()}:${padZero(endDate.getUTCMinutes())}`;
         const total = orders
           .filter(order => {
             const orderDate = new Date(order.orderdate);
-            return padZero(orderDate.getHours()) === labelHour && (order.status === 'Paid' || order.status === 'Shipped');
+            //const orderLabel = `${orderDate.getFullYear()}-${padZero(orderDate.getMonth() + 1)}-${padZero(orderDate.getDate())} ${padZero(orderDate.getHours())}`;
+            return orderDate >= startDate && orderDate < endDate && (order.status === 'Paid' || order.status === 'Shipped');
           })
           .reduce((sum, order) => sum + order.totalamount, 0);
-        labels.push(total);
+        labels.push( total );
       }
       break;
 
-    case '4HR':
-      for (let i = 0; i < 240; i++) {
-        const minuteAgo = subtractTime(now, { minutes: i });
-        const labelMinute = minuteAgo[2] + ":" + minuteAgo[1];
+    // case '4HR':
+    //   for (let i = 0; i < 240; i++) {
+    //     const minuteAgo = subtractTime(now, { minutes: i });
+    //     const labelDate = `${minuteAgo[5]}-${minuteAgo[4]}-${minuteAgo[3]}`;
+    //     const labelMinute = `${labelDate} ${minuteAgo[2]}:${minuteAgo[1]}`;
+
+    //     const total = orders
+    //       .filter(order => {
+    //         const orderDate = new Date(order.orderdate);
+    //         const orderLabel = `${orderDate.getFullYear()}-${padZero(orderDate.getMonth() + 1)}-${padZero(orderDate.getDate())} ${padZero(orderDate.getHours())}:${padZero(orderDate.getMinutes())}`;
+    //         return orderLabel === labelMinute && (order.status === 'Paid' || order.status === 'Shipped');
+    //       })
+    //       .reduce((sum, order) => sum + order.totalamount, 0);
+    //     labels.push(total);
+    //   }
+    //   break;
+     case '4HR':
+      // 8 half-hour intervals over 4 hours
+      for (let i = 0; i < 8; i++) {
+        const halfHourAgo = subtractTime(now, { minutes: i * 30 });
+        const labelDate = `${halfHourAgo[5]}-${padZero(halfHourAgo[4])}-${padZero(halfHourAgo[3])}`;
+        const labelMinute = `${labelDate} ${padZero(halfHourAgo[2])}:${padZero(halfHourAgo[1])}`;
+
+        // Get total for this 30-minute period
+        const periodStart = subtractTime(now, { minutes: (i + 1) * 30 });
+        const startTime = new Date(periodStart[5], periodStart[4] - 1, periodStart[3], periodStart[2], periodStart[1]);
+        const endTime = new Date(halfHourAgo[5], halfHourAgo[4] - 1, halfHourAgo[3], halfHourAgo[2], halfHourAgo[1]);
+
         const total = orders
           .filter(order => {
             const orderDate = new Date(order.orderdate);
-            const orderLabel = padZero(orderDate.getHours()) + ":" + padZero(orderDate.getMinutes());
-            return orderLabel === labelMinute && (order.status === 'Paid' || order.status === 'Shipped');
+            return (
+              orderDate >= startTime &&
+              orderDate < endTime &&
+              (order.status === 'Paid' || order.status === 'Shipped')
+            );
           })
           .reduce((sum, order) => sum + order.totalamount, 0);
+
         labels.push(total);
       }
       break;
@@ -346,11 +420,13 @@ const generateYAxis = (timeRange, orders) => {
     case '1HR':
       for (let i = 0; i < 60; i++) {
         const minuteAgo = subtractTime(now, { minutes: i });
-        const labelMinute = minuteAgo[2] + ":" + minuteAgo[1];
+        const labelDate = `${minuteAgo[5]}-${minuteAgo[4]}-${minuteAgo[3]}`;
+        const labelMinute = `${labelDate} ${minuteAgo[2]}:${minuteAgo[1]}`;
+
         const total = orders
           .filter(order => {
             const orderDate = new Date(order.orderdate);
-            const orderLabel = padZero(orderDate.getHours()) + ":" + padZero(orderDate.getMinutes());
+            const orderLabel = `${orderDate.getFullYear()}-${padZero(orderDate.getMonth() + 1)}-${padZero(orderDate.getDate())} ${padZero(orderDate.getHours())}:${padZero(orderDate.getMinutes())}`;
             return orderLabel === labelMinute && (order.status === 'Paid' || order.status === 'Shipped');
           })
           .reduce((sum, order) => sum + order.totalamount, 0);
@@ -361,6 +437,7 @@ const generateYAxis = (timeRange, orders) => {
     default:
       break;
   }
+  
 
-  return labels.reverse(); // chronological order
+  return labels; // chronological order
 };
