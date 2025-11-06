@@ -6,6 +6,7 @@ import PieChart from './PieChart';
 import { useQueryClient } from '@tanstack/react-query';
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
+import { subtractTime,padZero } from './subtractTime';
 
 
 
@@ -105,47 +106,65 @@ const ReportPage = () => {
 export default ReportPage;
 
 
+
+
+
+
+
 const BarChartData = (timeRange, orders) => {
   const now = new Date();
-  const list = {}
+  const list = {};
 
   switch (timeRange) {
     case '7D':
       for (let i = 0; i < 7; i++) {
         const date = new Date();
-        date.setDate(now.getDate() - i); // subtract i days
-        const formate = date.toISOString().split('T')[0];
+        date.setDate(now.getDate() - i);
+        const formatted = date.toISOString().split('T')[0];
         orders.forEach(order => {
-          if (order.orderdate.split(' ')[0] === formate && (order.status === 'Paid' || order.status === 'Shipped')) {
-            // Add amount if name exists, else set it
+          if (order.orderdate.split(' ')[0] === formatted && (order.status === 'Paid' || order.status === 'Shipped')) {
             list[order.name] = (list[order.name] || 0) + order.totalamount;
           }
-        }); //date
-
+        });
       }
       break;
 
     case '1D':
-
+      for (let i = 0; i < 24; i++) {
+        const hourAgo = subtractTime(now, { hours: i });
+        const labelHour = hourAgo[2]; // hour
+        orders.forEach(order => {
+          const orderDate = new Date(order.orderdate);
+          const orderHour = padZero(orderDate.getHours());
+          if (orderHour === labelHour && (order.status === 'Paid' || order.status === 'Shipped')) {
+            list[order.name] = (list[order.name] || 0) + order.totalamount;
+          }
+        });
+      }
       break;
 
     case '4HR':
-      // no implementation
+      for (let i = 0; i < 240; i++) {
+        const minuteAgo = subtractTime(now, { minutes: i });
+        const labelMinute = minuteAgo[2] + ":" + minuteAgo[1]; // HH:mm
+        orders.forEach(order => {
+          const orderDate = new Date(order.orderdate);
+          const orderLabel = padZero(orderDate.getHours()) + ":" + padZero(orderDate.getMinutes());
+          if (orderLabel === labelMinute && (order.status === 'Paid' || order.status === 'Shipped')) {
+            list[order.name] = (list[order.name] || 0) + order.totalamount;
+          }
+        });
+      }
       break;
 
     case '1HR':
-      // eslint-disable-next-line no-constant-condition
-      if (1 === 1) {
-        const oneHourAgo = new Date(now.getTime() - 60 * 60 * 1000); // 1 hour in milliseconds
-
+      for (let i = 0; i < 60; i++) {
+        const minuteAgo = subtractTime(now, { minutes: i });
+        const labelMinute = minuteAgo[2] + ":" + minuteAgo[1]; // HH:mm
         orders.forEach(order => {
-          const orderTime = new Date(order.orderdate);
-
-          if (
-            orderTime >= oneHourAgo &&
-            orderTime <= now &&
-            (order.status === 'Paid' || order.status === 'Shipped')
-          ) {
+          const orderDate = new Date(order.orderdate);
+          const orderLabel = padZero(orderDate.getHours()) + ":" + padZero(orderDate.getMinutes());
+          if (orderLabel === labelMinute && (order.status === 'Paid' || order.status === 'Shipped')) {
             list[order.name] = (list[order.name] || 0) + order.totalamount;
           }
         });
@@ -153,14 +172,13 @@ const BarChartData = (timeRange, orders) => {
       break;
 
     default:
-      // no implementation
       break;
   }
 
   return list;
 };
 
-
+// Pie Chart Data
 const PieChartData = (timeRange, orders) => {
   const now = new Date();
   const list = {
@@ -168,84 +186,103 @@ const PieChartData = (timeRange, orders) => {
     "Cancelled": 0,
     "Shipped": 0,
     "Paid": 0
-
-  }
+  };
 
   switch (timeRange) {
     case '7D':
       for (let i = 0; i < 7; i++) {
         const date = new Date();
-        date.setDate(now.getDate() - i); // subtract i days
-        const formate = date.toISOString().split('T')[0];
+        date.setDate(now.getDate() - i);
+        const formatted = date.toISOString().split('T')[0];
         orders.forEach(order => {
-          if (order.orderdate.split(' ')[0] === formate) {
-            // Add amount if name exists, else set it
+          if (order.orderdate.split(' ')[0] === formatted) {
             list[order.status] = (list[order.status] || 0) + 1;
           }
-        }); //date
-
+        });
       }
       break;
 
     case '1D':
-      // no implementation
+      for (let i = 0; i < 24; i++) {
+        const hourAgo = subtractTime(now, { hours: i });
+        const labelHour = hourAgo[2]; // hour
+        orders.forEach(order => {
+          const orderDate = new Date(order.orderdate);
+          const orderHour = padZero(orderDate.getHours());
+          if (orderHour === labelHour) {
+            list[order.status] = (list[order.status] || 0) + 1;
+          }
+        });
+      }
       break;
 
     case '4HR':
-      // no implementation
+      for (let i = 0; i < 240; i++) {
+        const minuteAgo = subtractTime(now, { minutes: i });
+        const labelMinute = minuteAgo[2] + ":" + minuteAgo[1];
+        orders.forEach(order => {
+          const orderDate = new Date(order.orderdate);
+          const orderLabel = padZero(orderDate.getHours()) + ":" + padZero(orderDate.getMinutes());
+          if (orderLabel === labelMinute) {
+            list[order.status] = (list[order.status] || 0) + 1;
+          }
+        });
+      }
       break;
 
     case '1HR':
-      // no implementation
+      for (let i = 0; i < 60; i++) {
+        const minuteAgo = subtractTime(now, { minutes: i });
+        const labelMinute = minuteAgo[2] + ":" + minuteAgo[1];
+        orders.forEach(order => {
+          const orderDate = new Date(order.orderdate);
+          const orderLabel = padZero(orderDate.getHours()) + ":" + padZero(orderDate.getMinutes());
+          if (orderLabel === labelMinute) {
+            list[order.status] = (list[order.status] || 0) + 1;
+          }
+        });
+      }
       break;
 
     default:
-      // no implementation
       break;
   }
 
   return list;
 };
 
-
-
-
-
-// Utility function to generate X-axis dynamically
+// Generate X-Axis Labels
 const generateXAxis = (timeRange) => {
   const now = new Date();
   const labels = [];
 
   switch (timeRange) {
-
-
-    case '7D': // last 7 days
+    case '7D':
       for (let i = 0; i < 7; i++) {
         const date = new Date();
-        date.setDate(now.getDate() - i); // subtract i days
+        date.setDate(now.getDate() - i);
         labels.push(date.toISOString().split('T')[0]);
-
       }
       break;
 
-    case '1D': // last 5 weeks
-
+    case '1D':
+      for (let j = 1; j <= 24; j++) {
+        const result = subtractTime(now, { hours: j });
+        labels.push(result[2] + ":" + result[1]);
+      }
       break;
 
-    case '4HR': // last 12 months
-
+    case '4HR':
+      for (let j = 1; j <= 240; j++) {
+        const result = subtractTime(now, { minutes: j });
+        labels.push(result[2] + ":" + result[1]);
+      }
       break;
 
-    case '1HR': // last 5 years
-      for (let i = 59; i >= 0; i--) {
-        const date = new Date(now);
-        date.setMinutes(now.getMinutes() - i); // subtract i minutes
-
-        const formatted =
-          String(date.getHours()).padStart(2, '0') + ':' +
-          String(date.getMinutes()).padStart(2, '0');
-
-        labels.push(formatted);
+    case '1HR':
+      for (let j = 1; j <= 60; j++) {
+        const result = subtractTime(now, { minutes: j });
+        labels.push(result[2] + ":" + result[1]);
       }
       break;
 
@@ -253,88 +290,77 @@ const generateXAxis = (timeRange) => {
       break;
   }
 
-  return labels;
+  return labels.reverse(); // chronological order
 };
 
+// Generate Y-Axis Values
 const generateYAxis = (timeRange, orders) => {
   const now = new Date();
   const labels = [];
 
   switch (timeRange) {
-
-
-    case '7D': // last 7 days
+    case '7D':
       for (let i = 0; i < 7; i++) {
         const date = new Date();
-        date.setDate(now.getDate() - i); // subtract i days
-
-        // Format as YYYY-MM-DD
+        date.setDate(now.getDate() - i);
         const formatted = date.toISOString().split('T')[0];
-
-        // Filter orders for this date
-        const dateOrders = orders.filter(order => {
-          const orderDate = new Date(order.orderdate);
-          const orderDateStr = orderDate.toISOString().split('T')[0];
-          return orderDateStr === formatted;
-        });
-
-        // Sum totalamount for that day
-        const total = dateOrders.reduce((sum, order) => {
-          if (order.status === 'Paid' || order.status == 'Shipped') {
-            return sum + order.totalamount
-          }
-          return sum;
-        }, 0);
+        const total = orders
+          .filter(order => {
+            const orderDateStr = order.orderdate.split(' ')[0];
+            return orderDateStr === formatted && (order.status === 'Paid' || order.status === 'Shipped');
+          })
+          .reduce((sum, order) => sum + order.totalamount, 0);
         labels.push(total);
       }
       break;
 
-
-    case '1D': // last 5 weeks
-
+    case '1D':
+      for (let i = 0; i < 24; i++) {
+        const hourAgo = subtractTime(now, { hours: i });
+        const labelHour = hourAgo[2];
+        const total = orders
+          .filter(order => {
+            const orderDate = new Date(order.orderdate);
+            return padZero(orderDate.getHours()) === labelHour && (order.status === 'Paid' || order.status === 'Shipped');
+          })
+          .reduce((sum, order) => sum + order.totalamount, 0);
+        labels.push(total);
+      }
       break;
 
-    case '4HR': // last 12 months
-
+    case '4HR':
+      for (let i = 0; i < 240; i++) {
+        const minuteAgo = subtractTime(now, { minutes: i });
+        const labelMinute = minuteAgo[2] + ":" + minuteAgo[1];
+        const total = orders
+          .filter(order => {
+            const orderDate = new Date(order.orderdate);
+            const orderLabel = padZero(orderDate.getHours()) + ":" + padZero(orderDate.getMinutes());
+            return orderLabel === labelMinute && (order.status === 'Paid' || order.status === 'Shipped');
+          })
+          .reduce((sum, order) => sum + order.totalamount, 0);
+        labels.push(total);
+      }
       break;
 
-    case '1HR': // last 5 years
-      // for (let i = 59; i >= 0; i--) {
-      //   const date = new Date(now).toUTCString();
-      //   date.setMinutes(now.getMinutes() - i); // subtract i minutes
-
-      //   // Format as HH:mm
-
-      //   // Define 1-minute range
-      //   const start = new Date(date).toUTCString();
-      //   const end = new Date(date).toUTCString();
-      //   end.setMinutes(start.getMinutes() + 1);
-
-      //   // Filter orders within this minute
-      //   const minuteOrders = orders.filter(order => {
-      //     const orderDate = new Date(order.orderdate);
-      //     return (
-      //       orderDate >= start &&
-      //       orderDate < end &&
-      //       (order.status === 'Paid' || order.status === 'Shipped')
-      //     );
-      //   });
-
-        // Sum totalamount for that minute
-      //   const total = minuteOrders.reduce((sum, order) => sum + order.totalamount, 0);
-
-
-      //   labels.push(total);
-      // }
+    case '1HR':
+      for (let i = 0; i < 60; i++) {
+        const minuteAgo = subtractTime(now, { minutes: i });
+        const labelMinute = minuteAgo[2] + ":" + minuteAgo[1];
+        const total = orders
+          .filter(order => {
+            const orderDate = new Date(order.orderdate);
+            const orderLabel = padZero(orderDate.getHours()) + ":" + padZero(orderDate.getMinutes());
+            return orderLabel === labelMinute && (order.status === 'Paid' || order.status === 'Shipped');
+          })
+          .reduce((sum, order) => sum + order.totalamount, 0);
+        labels.push(total);
+      }
       break;
 
     default:
       break;
   }
 
-  return labels;
+  return labels.reverse(); // chronological order
 };
-
-
-
-
