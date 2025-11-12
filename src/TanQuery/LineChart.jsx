@@ -3,14 +3,15 @@ import React from 'react';
 import ReactECharts from 'echarts-for-react';
 
 const LineChart = ({ timeRange, pointData }) => {
-    const totalData = pointData.map(item => item.total);
+  const totalData = pointData.map(item => item.total);
 
-   // ECharts default color palette
+  // ECharts default color palette
   const echartsColors = [
-    '#5470C6', '#91CC75', '#EE6666', '#73C0DE', '#3BA272', '#FC8452', '#9A60B4', '#EA7CCC'
+    '#5470C6', '#91CC75', '#EE6666', '#73C0DE',
+    '#3BA272', '#FC8452', '#9A60B4', '#EA7CCC'
   ];
 
-  // Map individual names to ECharts colors
+  // Map individual names to consistent colors
   const nameColorMap = {};
   let colorIndex = 0;
   pointData.forEach(point => {
@@ -21,7 +22,50 @@ const LineChart = ({ timeRange, pointData }) => {
       }
     });
   });
+
   const option = {
+    tooltip: {
+      trigger: 'axis',
+      axisPointer: {
+        type: 'line',
+      },
+      backgroundColor: 'rgba(50, 50, 50, 0.85)',
+      borderRadius: 6,
+      padding: 10,
+      textStyle: {
+        color: '#fff',
+        fontSize: 13,
+      },
+      formatter: function (params) {
+        const index = params[0].dataIndex;
+        const point = pointData[index];
+
+        // Main title (x-axis label)
+        let tooltipText = `
+          <div style="font-size:15px; font-weight:bold; color:#ffd700;">
+            ${params[0].name}
+          </div>
+          <div style="margin-top:5px; color:#ff7f50;">
+            Total: <b>$${Math.round(point.total)}</b>
+          </div>
+        `;
+
+        // Individual breakdown (if available)
+        if (point.individual && Object.keys(point.individual).length > 0) {
+          tooltipText += `<div style="margin-top:5px; color:#ccc; font-weight:bold;">Details:</div>`;
+          for (let name in point.individual) {
+            const color = nameColorMap[name];
+            tooltipText += `
+              <div style="color:${color}; margin-left:8px;">
+                ${name}: $${Math.round(point.individual[name])}
+              </div>
+            `;
+          }
+        }
+
+        return tooltipText;
+      },
+    },
     xAxis: {
       type: 'category',
       data: timeRange,
@@ -32,7 +76,8 @@ const LineChart = ({ timeRange, pointData }) => {
         color: '#333',
         fontSize: 14,
         fontWeight: 'bold'
-      }
+      },
+      
     },
     yAxis: {
       type: 'value',
@@ -49,18 +94,25 @@ const LineChart = ({ timeRange, pointData }) => {
       {
         data: totalData,
         type: 'line',
+        smooth: true,
         symbolSize: 8,
+        lineStyle: {
+          width: 3,
+          color: '#3b82f6',
+        },
+        itemStyle: {
+          color: '#3b82f6',
+        },
         label: {
           show: true,
           position: 'top',
           formatter: function (params) {
             const value = Math.round(params.value);
-            if (value === 0) return '';
-            return `${params.name} / $${value}`;
+            return value === 0 ? '' : `$${value}`;
           },
           color: '#000',
           fontSize: 12,
-          fontWeight: 'bold'
+          fontWeight: 'bold',
         },
         emphasis: {
           focus: 'self',
@@ -71,49 +123,15 @@ const LineChart = ({ timeRange, pointData }) => {
           },
           label: {
             show: true,
-            fontSize: 20, 
+            fontSize: 16,
             fontWeight: 'bolder',
             color: '#d00'
           },
-          symbolSize: 18  
+          symbolSize: 14
         },
-        blur: {
-          label: {
-            show: false 
-          },
-          itemStyle: {
-            opacity: 0.2 
-          }
-        },
-        blurScope: 'series', 
-        animationDuration: 600
+        animationDuration: 600,
       }
     ],
-       tooltip: {
-      trigger: 'axis',
-      formatter: function (params) {
-        const index = params[0].dataIndex;
-        const point = pointData[index];
-
-        // Custom colors
-        const nameColor = '#1f77b4'; // blue for x-axis label
-        const totalColor = '#d00';   // red for total
-        const detailsColor = '#ff8c00'; // orange for "Details:"
-
-        let tooltipText = `<span style="color:${nameColor}; font-weight:bold; font-size:20px">${params[0].name}</span><br/>`;
-        tooltipText += `<span style="color:${totalColor};">Total: $${Math.round(point.total)}</span><br/>`;
-
-        if (point.individual && Object.keys(point.individual).length > 0) {
-          tooltipText += `<span style="color:${detailsColor}; font-weight:bold; font-size:15px;">Details:</span><br/>`;
-          for (let name in point.individual) {
-            const color = nameColorMap[name]; // ECharts color
-            tooltipText += `<span style="color:${color}; font-weight:bold;">${name}: $${point.individual[name]}</span><br/>`;
-          }
-        }
-
-        return tooltipText;
-      }
-    }
   };
 
   return <ReactECharts option={option} style={{ height: 400 }} />;
