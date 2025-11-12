@@ -8,7 +8,7 @@ const BarChart = ({ bar }) => {
 
   const option = {
     // title: {
-    //   text: '', // 👈 Main chart title
+    //   text: '', 
     //   left: 'center',
     //   top: 0,
     //   textStyle: {
@@ -20,7 +20,7 @@ const BarChart = ({ bar }) => {
     xAxis: {
       type: 'category',
       data: names,
-      name: 'Name',       // 👈 X-axis title
+      name: 'Name',     
       nameLocation: 'middle',
       nameGap: 30,
       nameTextStyle: {
@@ -32,7 +32,7 @@ const BarChart = ({ bar }) => {
     },
     yAxis: {
       type: 'value',
-      name: 'Total Amount ',      // 👈 Y-axis title
+      name: 'Total Amount ',     
       nameLocation: 'middle',
       nameGap: 50,
       nameTextStyle: {
@@ -52,8 +52,8 @@ const BarChart = ({ bar }) => {
           show: true,
           position: 'top',
           formatter: (params) => {
-            const value = Math.round(params.value); // round decimals
-            return value === 0 ? '' : value;        // hide if 0
+            const value = Math.round(params.value); 
+            return value === 0 ? '' : value;        
           },
           color: '#000',
           fontSize: 12,

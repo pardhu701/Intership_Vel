@@ -5,3 +5,22 @@ html, body, #root {
   margin: 0;
   padding: 0;
 }
+
+.ag-theme-alpine .ag-floating-filter-input,
+.ag-theme-alpine .ag-input-field-input,
+.ag-theme-alpine input {
+  color: black !important;              /* make text black */
+  background-color: white !important;   /* optional, ensures readability */
+}
+
+
+/* Force tooltip background and text color */
+.ag-tooltip {
+  background-color: rgba(50, 50, 50, 0.95) !important;
+  color: #fff !important;
+  border: 1px solid #444 !important;
+  padding: 6px 10px !important;
+  border-radius: 6px !important;
+  font-size: 20px !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}

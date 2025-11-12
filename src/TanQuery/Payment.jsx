@@ -60,3 +60,64 @@ const randomSelection = options[Math.floor(Math.random() * options.length)];
 };
 
 export default Payment;
+
+
+// // components/PaymentModal.jsx
+// import React from "react";
+// import { Modal, Button } from "antd";
+// import { useMutation, useQueryClient } from "@tanstack/react-query";
+// import { addOrder } from "./addOrder";
+
+// const PaymentModal = ({ open, paymentInfo, onCancel }) => {
+//   const queryClient = useQueryClient();
+
+//   const addOrderMutation = useMutation({
+//     mutationFn: addOrder,
+//     onSuccess: (data) => {
+//       queryClient.setQueryData(["orders"], (oldData) =>
+//         oldData ? [...oldData, data] : [data]
+//       );
+//       onCancel();
+//     },
+//   });
+
+//   if (!paymentInfo) return null;
+
+//   const options = ["Paid", "Shipped"];
+//   const randomSelection = options[Math.floor(Math.random() * options.length)];
+
+//   const handlePayNow = () => {
+//     addOrderMutation.mutate({ ...paymentInfo, status: randomSelection });
+//   };
+
+//   const handleCancelOrder = () => {
+//     addOrderMutation.mutate({ ...paymentInfo, status: "Cancelled" });
+//   };
+
+//   return (
+//     <Modal
+//       open={open}
+//       title="Payment"
+//       onCancel={onCancel}
+//       footer={null}
+//       destroyOnClose
+//       centered
+//     >
+//       <p style={{ fontSize: 16 }}>
+//         <strong>Amount Payable:</strong> ₹{paymentInfo.totalamount}
+//       </p>
+
+//       <div style={{ textAlign: "center" }}>
+//         <Button type="primary" onClick={handlePayNow} style={{ marginRight: 8 }}>
+//           Pay Now
+//         </Button>
+//         <Button danger onClick={handleCancelOrder}>
+//           Cancel Order
+//         </Button>
+//       </div>
+//     </Modal>
+//   );
+// };
+
+// export default PaymentModal;
+

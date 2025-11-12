@@ -50,7 +50,7 @@ const OrderForm1 = () => {
             name="itemscount"
             rules={[{ required: true, message: "Items Required" }]}
           >
-            <InputNumber min={0} style={{ width: "100%" }} />
+            <InputNumber min={1} style={{ width: "100%" }} placeholder="Required Quntity" />
           </Form.Item>
     
 
@@ -81,81 +81,155 @@ export default OrderForm1;
 
 
 
-    //  {/* Dynamic List of Items */}
-    //     {/* <Form.List
-    //       name="items"
-    //       rules={[
-    //         {
-    //           validator: async (_, items) => {
-    //             if (!items || items.length < 1) {
-    //               return Promise.reject(
-    //                 new Error("Please add at least one item!")
-    //               );
-    //             }
-    //           },
-    //         },
-    //       ]}
-    //     >
-    //       {(fields, { add, remove }) => (
-    //         <>
-    //           {fields.map(({ key, name, ...restField }) => (
-    //             <Space
-    //               key={key}
-    //               style={{
-    //                 display: "flex",
-    //                 marginBottom: 8,
-    //                 alignItems: "baseline",
-    //               }}
-    //               align="baseline"
-    //             >
-    //               <Form.Item
-    //                 {...restField}
-    //                 name={[name, "category"]}
-    //                 label="Category"
-    //                 rules={[{ required: true, message: "Select category!" }]}
-    //               >
-    //                 <Select placeholder="Select category" style={{ width: 160 }}>
-    //                   <Option value="Electronics">Electronics</Option>
-    //                   <Option value="Groceries">Groceries</Option>
-    //                   <Option value="Clothing">Clothing</Option>
-    //                 </Select>
-    //               </Form.Item>
+//     //  {/* Dynamic List of Items */}
+//     //     {/* <Form.List
+//     //       name="items"
+//     //       rules={[
+//     //         {
+//     //           validator: async (_, items) => {
+//     //             if (!items || items.length < 1) {
+//     //               return Promise.reject(
+//     //                 new Error("Please add at least one item!")
+//     //               );
+//     //             }
+//     //           },
+//     //         },
+//     //       ]}
+//     //     >
+//     //       {(fields, { add, remove }) => (
+//     //         <>
+//     //           {fields.map(({ key, name, ...restField }) => (
+//     //             <Space
+//     //               key={key}
+//     //               style={{
+//     //                 display: "flex",
+//     //                 marginBottom: 8,
+//     //                 alignItems: "baseline",
+//     //               }}
+//     //               align="baseline"
+//     //             >
+//     //               <Form.Item
+//     //                 {...restField}
+//     //                 name={[name, "category"]}
+//     //                 label="Category"
+//     //                 rules={[{ required: true, message: "Select category!" }]}
+//     //               >
+//     //                 <Select placeholder="Select category" style={{ width: 160 }}>
+//     //                   <Option value="Electronics">Electronics</Option>
+//     //                   <Option value="Groceries">Groceries</Option>
+//     //                   <Option value="Clothing">Clothing</Option>
+//     //                 </Select>
+//     //               </Form.Item>
 
-    //               <Form.Item
-    //                 {...restField}
-    //                 name={[name, "itemName"]}
-    //                 label="Item Name"
-    //                 rules={[{ required: true, message: "Enter item name!" }]}
-    //               >
-    //                 <Input placeholder="Enter item name" />
-    //               </Form.Item>
+//     //               <Form.Item
+//     //                 {...restField}
+//     //                 name={[name, "itemName"]}
+//     //                 label="Item Name"
+//     //                 rules={[{ required: true, message: "Enter item name!" }]}
+//     //               >
+//     //                 <Input placeholder="Enter item name" />
+//     //               </Form.Item>
 
-    //               <Form.Item
-    //                 {...restField}
-    //                 name={[name, "quantity"]}
-    //                 label="Qty"
-    //                 rules={[{ required: true, message: "Enter qty!" }]}
-    //               >
-    //                 <Input type="number" min={1} style={{ width: 80 }} />
-    //               </Form.Item>
+//     //               <Form.Item
+//     //                 {...restField}
+//     //                 name={[name, "quantity"]}
+//     //                 label="Qty"
+//     //                 rules={[{ required: true, message: "Enter qty!" }]}
+//     //               >
+//     //                 <Input type="number" min={1} style={{ width: 80 }} />
+//     //               </Form.Item>
 
-    //               <MinusCircleOutlined
-    //                 onClick={() => remove(name)}
-    //                 style={{ color: "red", marginTop: 30 }}
-    //               />
-    //             </Space>
-    //           ))}
+//     //               <MinusCircleOutlined
+//     //                 onClick={() => remove(name)}
+//     //                 style={{ color: "red", marginTop: 30 }}
+//     //               />
+//     //             </Space>
+//     //           ))}
 
-    //           <Form.Item>
-    //             <Button
-    //               type="dashed"
-    //               onClick={() => add()}
-    //               block
-    //               icon={<PlusOutlined />}
-    //             >
-    //               Add Item
-    //             </Button>
-    //           </Form.Item>
-    //         </>
-    //       )}
-    //     </Form.List> */}
+//     //           <Form.Item>
+//     //             <Button
+//     //               type="dashed"
+//     //               onClick={() => add()}
+//     //               block
+//     //               icon={<PlusOutlined />}
+//     //             >
+//     //               Add Item
+//     //             </Button>
+//     //           </Form.Item>
+//     //         </>
+//     //       )}
+//     //     </Form.List> */}           
+
+
+
+// // components/OrderFormModal.jsx
+// import React from "react";
+// import { Modal, Form, Input, Select, Button, InputNumber } from "antd";
+
+// const { Option } = Select;
+
+// const OrderFormModal = ({ open, userid, onNext, onCancel }) => {
+//   const [form] = Form.useForm();
+
+//   const onFinish = (values) => {
+//     const orderDetails = { ...values, userid };
+//     onNext(orderDetails);
+//   };
+
+//   return (
+//     <Modal
+//       open={open}
+//       title="Create Order"
+//       onCancel={onCancel}
+//       footer={null}
+//       destroyOnClose
+//     >
+//       <Form form={form} layout="vertical" onFinish={onFinish}>
+//         <Form.Item label="User ID">
+//           <Input value={userid} disabled />
+//         </Form.Item>
+
+//         <Form.Item
+//           label="Category"
+//           name="category"
+//           rules={[{ required: true, message: "Please select a category" }]}
+//         >
+//           <Select placeholder="Select Category">
+//             <Option value="Electronics">Electronics</Option>
+//             <Option value="Clothing">Clothing</Option>
+//             <Option value="Groceries">Groceries</Option>
+//             <Option value="Toys">Toys</Option>
+//             <Option value="Books">Books</Option>
+//             <Option value="Kitchen">Kitchen</Option>
+//             <Option value="SportsKit">SportsKit</Option>
+//           </Select>
+//         </Form.Item>
+
+//         <Form.Item
+//           label="Items Count"
+//           name="itemscount"
+//           rules={[{ required: true, message: "Please enter item count" }]}
+//         >
+//           <InputNumber min={1} style={{ width: "100%" }} />
+//         </Form.Item>
+
+//         <Form.Item
+//           label="Payment Method"
+//           name="payementmethod"
+//           rules={[{ required: true, message: "Please select payment method" }]}
+//         >
+//           <Select placeholder="Select payment method">
+//             <Option value="Cash On Delivary">Cash on Delivery</Option>
+//             <Option value="Online">Online</Option>
+//           </Select>
+//         </Form.Item>
+
+//         <Button type="primary" htmlType="submit" block>
+//           Proceed to Checkout
+//         </Button>
+//       </Form>
+//     </Modal>
+//   );
+// };
+
+// export default OrderFormModal;

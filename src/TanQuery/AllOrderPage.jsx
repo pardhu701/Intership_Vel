@@ -1,237 +1,363 @@
-import React, { useState, useEffect, useCallback } from "react";
-import { Card, Typography, Space, Button ,Modal, Input } from "antd";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
+import { Card, Typography, Space, Button, Modal, Input } from "antd";
 import { AgGridReact } from "ag-grid-react";
-import { ModuleRegistry, AllCommunityModule, themeQuartz } from 'ag-grid-community';
+import {
+  ModuleRegistry,
+  AllCommunityModule,
+  themeQuartz,
+} from "ag-grid-community";
 import "ag-grid-community/styles/ag-grid.css";
-import "ag-grid-community/styles/ag-theme-alpine.css";
+import "ag-grid-community/styles/ag-theme-quartz.css"; // ✅ Quartz theme style
 import "antd/dist/reset.css";
-import axios from 'axios';
+import OrderModal from "./OrderModal.jsx";
+import PlaceOrder from "./PlaceOrder.jsx";
+import axios from "axios";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { putOrder } from "./addOrder";
-import { useSelector } from "react-redux";
+import { deleteOrder, putOrder } from "./addOrder";
+import { useSelector, useDispatch } from "react-redux";
 import { BASE_URL } from "./Api";
-import { useDispatch } from "react-redux";
-import { setIsVerified, setPinInput, setShowPinPrompt } from "./authSlice.js";
+import {
+  setIsVerified,
+  setPinInput,
+  setShowPinPrompt,
+} from "./authSlice.js";
+import DeleteOrderModal from "./DeleteOrderModal.jsx";
+import EditOrderModal from "./EditOrderModal.jsx";
 
 const { Title } = Typography;
+const { Search } = Input;
 
+// ✅ Register AG Grid modules
+ModuleRegistry.registerModules([AllCommunityModule]);
 
 const AllOrderPage = () => {
-  
+
+  const [gridApi, setGridApi] = useState(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [selectedOrder, setSelectedOrder] = useState(null);
+
+
+
+  const [quickFilterText, setQuickFilterText] = useState('');
   const queryClient = useQueryClient();
-   const [trigger, setTrigger] = useState(false)
-   const[user,setUser]= React.useState({})
-const userName=useSelector(state=>state.user.user)
-
-// ////////////////////
-//  const [isVerified, setIsVerified] = useState(false);
-//   const [pinInput, setPinInput] = useState("");
-//   const [showPinPrompt, setShowPinPrompt] = useState(false);
-//   ///////////////////
+  const [trigger, setTrigger] = useState(false);
+  const [user, setUser] = useState({});
+  const userName = useSelector((state) => state.user.user);
   const dispatch = useDispatch();
-  const { isVerified, pinInput, showPinPrompt } = useSelector((state) => state.auth);
+  const { isVerified, pinInput, showPinPrompt } = useSelector(
+    (state) => state.auth
+  );
 
-
-React.useEffect(()=>{
-  
-  setUser(userName);
-    if (userName?.type === "admin" && !isVerified) {////////////
-      // setShowPinPrompt(true);
-      dispatch(setShowPinPrompt(true))
-     
-    }//////////////
-},[userName])
-
- 
+  useEffect(() => {
+    setUser(userName);
+    if (userName?.type === "admin" && !isVerified) {
+      dispatch(setShowPinPrompt(true));
+    }
+  }, [userName]);
 
   const putChange = useMutation({
     mutationFn: putOrder,
     onSuccess: (data, variables) => {
-      // Optimistically update the order in cache
-      queryClient.setQueryData(['orders'], oldData => {
-        return oldData.map(order =>
+      queryClient.setQueryData(["orders"], (oldData) =>
+        oldData.map((order) =>
           order.id === variables.id ? data : order
-        );
-      });
-      setTrigger(false)
-        
+        )
+      );
+      setTrigger((prev)=>!prev);
     },
+  });
 
-  })
+  const deleteChange = useMutation({
+    mutationFn: deleteOrder,
+    onSuccess: (data, variables) => {
+      queryClient.setQueryData(["orders"], (oldData) =>
+        oldData.map((order) =>
+          order.idn === variables.idN ? data : order
+        )
+      );
+      setTrigger((prev)=>!prev);
+    },
+  });
 
-  
+
+
   function isEditable(params) {
-    // allow editing only if current user is admin
-    return user.type === 'admin' && isVerified;
-    // you can add more logic: only certain rows, columns, etc.
+    return user.type === "admin" && isVerified;
   }
 
-
-  // Define column definitions
   const columnDefs = [
-    { headerName: "Order ID", field: "idN", filter: "agTextColumnFilter", cellStyle: { textAlign: 'left' }, },
+    {
+      headerName: "Order ID", field: "idN", filter: "agTextColumnFilter", tooltipField: "idN",
+      headerTooltip: "Order ID"
+    },
     {
       headerName: "Customer Name",
       field: "name",
-      filter: "agTextColumnFilter"
+      tooltipField: "name",
+      headerTooltip: "Customer Name",
     },
-
-    { headerName: "Transaction ID", field: "transactionId", filter: "agTextColumnFilter", cellStyle: { textAlign: 'left' } },
-    { headerName: "Category", field: "category", filter: "agTextColumnFilter", cellStyle: { textAlign: 'left' },editable: params => isEditable(params),
-   cellEditor: 'agSelectCellEditor',
-    cellEditorParams: {
-      values: ['Electronics', 'Clothing', 'Groceries', 'Toys', 'Books', 'Kitchen', 'SportsKit']
+    {
+      headerName: "Transaction ID", field: "transactionId", tooltipField: "transactionId",
+      headerTooltip: "Transaction ID"
     },
-  },
-    { headerName: "Item Count", field: "itemscount", filter: "agNumberColumnFilter", cellStyle: { textAlign: 'left' }, editable:params => isEditable(params)},
-    { headerName: "₹ Amount", field: "totalamount", filter: "agNumberColumnFilter", cellStyle: { textAlign: 'left' }},
-    { headerName: "Payment Method", field: "payementmethod", filter: "agTextColumnFilter", cellStyle: { textAlign: 'left' }, },
-    { headerName: "Order Date", field: "orderdate", filter: "agDateColumnFilter", cellStyle: { textAlign: 'left' }, editable: params => isEditable(params)},
-    { headerName: "Last Update", field: "lastupdated", filter: "agDateColumnFilter", cellStyle: { textAlign: 'left' }, editable: params => isEditable(params) },
+    {
+      headerName: "Category",
+      field: "category",
+      editable: isEditable,
+      tooltipField: "category",
+      headerTooltip: "Category",
+      cellEditor: "agSelectCellEditor",
+      cellEditorParams: {
+        values: [
+          "Electronics",
+          "Clothing",
+          "Groceries",
+          "Toys",
+          "Books",
+          "Kitchen",
+          "SportsKit",
+        ],
+      },
+    },
+    {
+      headerName: "Item Count", field: "itemscount", editable: isEditable, tooltipField: "itemscount",
+      headerTooltip: "Item Count"
+    },
+    {
+      headerName: "₹ Amount", field: "totalamount", tooltipField: "totalamount",
+      headerTooltip: "₹ Amount"
+    },
+    {
+      headerName: "Payment Method", field: "payementmethod", tooltipField: "payementmethod",
+      headerTooltip: "Payment Method"
+    },
+    {
+      headerName: "Order Date", field: "orderdate", editable: isEditable, tooltipField: "orderdate",
+      headerTooltip: "Order Date"
+    },
+    {
+      headerName: "Last Update", field: "lastupdated", editable: isEditable, tooltipField: "lastupdated",
+      headerTooltip: "Last Update"
+    },
     {
       headerName: "Status",
-      cellStyle: { textAlign: 'left' },
-      editable: params => isEditable(params),
-      cellEditor: 'agSelectCellEditor',
-      cellEditorParams: {
-        values: ['Pending', 'Shipped', 'Paid', 'Cancelled'],  // dropdown options
-         multiSelect: true
-      },
       field: "status",
-      filter: "agSetColumnFilter",
+      tooltipField: "status",
+      headerTooltip: "Status",
+      editable: isEditable,
+      cellEditor: "agSelectCellEditor",
+      cellEditorParams: {
+        values: ["Pending", "Shipped", "Paid", "Cancelled"],
+        multiSelect: true,
+      },
       cellRenderer: (params) => {
-        const color =
-          params.value === "Paid"
-            ? "green"
-            : params.value === "Pending"
-              ? "orange"
-              : params.value === "Shipped" ? "LightGreen" : "red"
+        const status = params.value;
+        let color;
+
+        switch (status) {
+          case "Paid":
+            color = "green";
+            break;
+          case "Pending":
+            color = "orange";
+            break;
+          case "Shipped":
+            color = "lightgreen";
+            break;
+          case "Cancelled":
+            color = "red";
+            break;
+          default:
+            color = "gray"; // fallback for unexpected statuses
+            break;
+        }
+
         return (
-          <span
-            style={{
-              color: color,
-              fontWeight: "bold",
-            }}
-          >
-            {params.value}
-          </span>
+          <span style={{ color, fontWeight: "bold" }}>{status}</span>
         );
       },
+
     },
   ];
 
-  // Sample row data (replace with API data)
+  const actionColumn = {
+    headerName: "Action",
+    field: "actions",
+    cellRenderer: (params) => {
+      return (
+        <Space>
+          <Button
+            type="primary"
+            size="small"
+            onClick={() => handleEdit(params.data)}
+          >
+            Edit
+          </Button>
+          <Button
+            danger
+            size="small"
+            onClick={() => handleDelete(params.data)}
+          >
+            Delete
+          </Button>
+        </Space>
+      );
+    },
+  };
+
   const [rowData, setRowData] = useState([]);
- 
 
   useEffect(() => {
-    async function getUser() {
+    async function getOrders() {
       try {
         const response = await axios.get(`${BASE_URL}/orders`);
-        console.log(response.data);
         setRowData(response.data);
       } catch (error) {
-        console.error('Error fetching user:', error);
+        console.error("Error fetching orders:", error);
       }
     }
-
-    getUser();
-
-
+    getOrders();
   }, [trigger]);
 
   const defaultColDef = {
     sortable: true,
     filter: true,
     resizable: true,
+    // tooltipField: (params) => params.value, // show value as tooltip by default
+    // tooltipComponentParams: { color: 'light' },
+    // headerTooltip: 'Column info', 
     flex: 1,
-    editable: false,
-    headerStyle: { color: 'white', backgroundColor: 'black' },
-    cellStyle: { textAlign: 'left' },
-    floatingFilter: true, // Enables quick filter input under headers
+  };
+
+  const categoryCosts = useMemo(
+    () => ({
+      Electronics: 1200,
+      Clothing: 80,
+      Groceries: 50,
+      Toys: 40,
+      Books: 25,
+      Kitchen: 150,
+      SportsKit: 200,
+    }),
+    []
+  );
+
+  const handleDelete = (order) => {
+    setSelectedOrder(order);
+    setShowDeleteModal(true);
+  };
+
+  const handleEdit = (order) => {
+    console.log(order)
+    setSelectedOrder(order);
+    setShowEditModal(true);
+  };
+
+  const confirmDelete = async () => {
+    deleteChange.mutate({idN:selectedOrder.idN})
+     setShowDeleteModal(false);
+         setTrigger((prev)=>!prev);
+  };
+
+  const handleSaveEdit = (event) => {
+    // console.log(event)
+    setRowData((prev) =>
+      prev.map((o) => (o.id === event.id ? event : o))
+    );
+    setShowEditModal(false);
+    const newEvent = event;
+    const orderAmount =
+      categoryCosts[newEvent.category] * newEvent.itemscount;
+    const newEventLastDate = {
+      ...newEvent,
+      lastupdated: new Date(),
+      totalamount: orderAmount,
+    };
+    localStorage.setItem("changes", JSON.stringify(newEventLastDate));
+     setTrigger((prev)=>!prev);
+     const fromLocalStore = JSON.parse(localStorage.getItem("changes"));
+    putChange.mutate({
+      id: fromLocalStore.id,
+      putChange: { ...fromLocalStore },
+    });
   };
 
 
+  // const onCellValueChanged = (event) => {
+  //   //setTrigger(true);
+  //   // const newEvent = event.data;
+  //   // const orderAmount =
+  //   //   categoryCosts[newEvent.category] * newEvent.itemscount;
+  //   // const newEventLastDate = {
+  //   //   ...newEvent,
+  //   //   lastupdated: new Date(),
+  //   //   totalamount: orderAmount,
+  //   // };
+  //   // localStorage.setItem("changes", JSON.stringify(newEventLastDate));
+  // };
 
-  const categoryCosts = {
-    Electronics: 1200.5,
-    Clothing: 80,
-    Groceries: 50.01,
-    Toys: 40,
-    Books: 25,
-    Kitchen: 150,
-    SportsKit: 200.9,
-  };
+  // const handleClick = () => {
+  //   // const fromLocalStore = JSON.parse(localStorage.getItem("changes"));
+  //   // putChange.mutate({
+  //   //   id: fromLocalStore.id,
+  //   //   putChange: { ...fromLocalStore },
+  //   // });
+  // };
 
-
-
-
-  // const orderAmount = (categoryCosts[order.category] * order.itemscount);
-
-
-  const onCellValueChanged = (event) => {
-    setTrigger(true)
-    const newEvent = event.data;
-  
-    const orderAmount = (categoryCosts[newEvent.category] * newEvent.itemscount);
-
-    const newEventLastDate = { ...newEvent, lastupdated: new Date(),totalamount:orderAmount }
-    localStorage.setItem("changes", JSON.stringify(newEventLastDate))
-    // console.log(newEventLastDate)
-
-
-
-
-  };
-
-
-  
-
-      const handleClick = () => {
-    const fromLocalStore = JSON.parse(localStorage.getItem("changes"));
-  
-  
-    
-
-    putChange.mutate({ id: fromLocalStore.id, putChange:{...fromLocalStore} })
-    
-  }
-
-
-
-
-  // const onRowChange=(event)=>{
-  //    console.log(JSON.stringify(event.data));
-  //   console.log('Old value:', event.oldValue, 'New value:', event.newValue);
-
-  // }
+  const finalColumnDefs = useMemo(() => {
+    if (user.type === "admin" && isVerified) {
+      return [...columnDefs, actionColumn];
+    }
+    return columnDefs;
+  }, [user, isVerified]);
 
   const onGridReady = useCallback((params) => {
     params.api.sizeColumnsToFit();
+    setGridApi(params.api); // store API for later use
+  }, []);
+
+    // Function to toggle the state
+  const toggleActive = useCallback(() => {
+    setTrigger(prev => !prev);
   }, []);
 
   return (
-    <Card style={{ margin: 24 }} >
-      <Space direction="vertical" style={{ width: "100%" }} >
-        <Title level={3}>📦 All Orders</Title>
+    <Card style={{ margin: 24 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+    <Title level={3}>📦 All Orders</Title>
+    {/* PlaceOrder button at top-right */}
+     {Object.keys(userName).length > 0 && (
+         <PlaceOrder trigger={trigger} settrigger={toggleActive} />
+      )}
+   
+  </div>
 
-         {trigger && (
-      <Button
-        onClick={handleClick}
-        style={{
-          backgroundColor: "black",
-          color: "white",
-          fontWeight: "bold",
-          transition: "all 0.3s ease",
-          transform: trigger ? "scale(1)" : "scale(0.8)",
-          opacity: trigger ? 1 : 0,
-        }}
-      >
-        Save Changes
-      </Button>
-    )}
+      <Space direction="vertical" style={{ width: "100%" }}>
+        {/* <Title level={3}>📦 All Orders</Title> */}
+        <Input
+          placeholder="Search..."
+          value={quickFilterText}
+          onChange={(e) => setQuickFilterText(e.target.value)}
+          allowClear
+          style={{ width: '100%' }}
+        />
 
-       {/* ✅ PIN Modal (Ant Design) */}
+         {/* {trigger && (
+          <Button
+            onClick={handleClick}
+            style={{
+              backgroundColor: "black",
+              color: "white",
+              fontWeight: "bold",
+              transition: "all 0.3s ease",
+            }}
+          >
+            Save Changes
+          </Button>
+        )}  */}
+
+        {/* PIN Modal */}
         <Modal
           title="🔒 Admin Verification"
           open={showPinPrompt}
@@ -250,8 +376,7 @@ React.useEffect(()=>{
               type="primary"
               onClick={() => {
                 if (Number(pinInput) === Number(userName.createadminpass)) {
-                 
-                   dispatch(setIsVerified(true));
+                  dispatch(setIsVerified(true));
                   dispatch(setShowPinPrompt(false));
                 } else {
                   Modal.error({
@@ -263,37 +388,56 @@ React.useEffect(()=>{
             >
               Verify
             </Button>
-            <Button onClick={() => dispatch(setShowPinPrompt(false))}>Cancel</Button>
+            <Button onClick={() => dispatch(setShowPinPrompt(false))}>
+              Cancel
+            </Button>
           </Space>
         </Modal>
 
-        {/* ✅ Blur the grid until verified */}
+        {/* ✅ Apply Quartz theme here */}
         <div
           style={{
             position: "relative",
-            filter: user.type === "admin" && !isVerified ? "blur(4px)" : "none",
-            pointerEvents: user.type === "admin" && !isVerified ? "none" : "auto",
+            filter:
+              user.type === "admin" && !isVerified ? "blur(4px)" : "none",
+            pointerEvents:
+              user.type === "admin" && !isVerified ? "none" : "auto",
           }}
-          className="ag-theme-alpine"
+          className="ag-theme-quartz" // ✅ Quartz theme applied
         >
-          <div
-            style={{
-              height: "80vh",
-              width: "100%",
-            }}
-          >
+          <div style={{ height: "80vh", width: "100%" }}>
             <AgGridReact
+              quickFilterText={quickFilterText}
+
               rowData={rowData}
-              columnDefs={columnDefs}
+              columnDefs={finalColumnDefs}
               defaultColDef={defaultColDef}
               pagination={true}
-              paginationPageSize={22}
+              paginationPageSize={27}
               onGridReady={onGridReady}
-              onCellValueChanged={onCellValueChanged}
+              // onCellValueChanged={onCellValueChanged}
+              theme={themeQuartz} // ✅ Quartz theme used
             />
           </div>
         </div>
       </Space>
+      
+     
+      <DeleteOrderModal
+        visible={showDeleteModal}
+        order={selectedOrder}
+        onCancel={() => setShowDeleteModal(false)}
+        onConfirm={confirmDelete}
+      />
+
+      <EditOrderModal
+        visible={showEditModal}
+        order={selectedOrder}
+        onCancel={() => setShowEditModal(false)}
+        onSave={handleSaveEdit}
+      />
+
+
     </Card>
   );
 };

@@ -25,3 +25,14 @@ export const putOrder= async ({id,putChange}) => {
     throw error.response?.data || error;
   }
 };
+
+export const deleteOrder = async ({ idN }) => {
+  try {
+    const response = await axios.delete(`${BASE_URL}/orders/${idN}`);
+    // Return confirmation or deleted order data (depending on API behavior)
+    return response.data;
+  } catch (error) {
+    console.error('Error deleting order:', error);
+    throw error.response?.data || error;
+  }
+};
